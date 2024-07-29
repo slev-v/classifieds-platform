@@ -6,6 +6,7 @@ from src.domain.entities.user import User
 class CreateUserRequestSchema(BaseModel):
     username: str
     email: str
+    password: str
 
 
 class CreateUserResponseSchema(BaseModel):
@@ -15,6 +16,20 @@ class CreateUserResponseSchema(BaseModel):
 
     @classmethod
     def from_entity(cls, user: User) -> "CreateUserResponseSchema":
+        return cls(
+            oid=user.oid,
+            username=user.name.as_generic_type(),
+            email=user.email.as_generic_type(),
+        )
+
+
+class GetUserByOidResponseSchema(BaseModel):
+    oid: str
+    username: str
+    email: str
+
+    @classmethod
+    def from_entity(cls, user: User) -> "GetUserByOidResponseSchema":
         return cls(
             oid=user.oid,
             username=user.name.as_generic_type(),

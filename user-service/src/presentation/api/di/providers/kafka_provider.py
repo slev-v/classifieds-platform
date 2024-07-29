@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from dishka import provide, Provider, Scope, make_async_container
+from dishka import provide, Provider, Scope
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 
 from src.infra.message_brokers.base import BaseMessageBroker

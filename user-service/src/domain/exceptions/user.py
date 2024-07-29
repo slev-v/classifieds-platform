@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
-from src.domain.exceptions.base import ApplicationException
+from src.domain.exceptions.base import DomainException
 
 
 @dataclass(eq=False)
-class UsernameTooShortException(ApplicationException):
+class UsernameTooShortException(DomainException):
     username: str
 
     @property
@@ -13,7 +13,7 @@ class UsernameTooShortException(ApplicationException):
 
 
 @dataclass(eq=False)
-class UsernameTooLongException(ApplicationException):
+class UsernameTooLongException(DomainException):
     username: str
 
     @property
@@ -22,9 +22,18 @@ class UsernameTooLongException(ApplicationException):
 
 
 @dataclass(eq=False)
-class EmailInvalidException(ApplicationException):
+class EmailInvalidException(DomainException):
     email: str
 
     @property
     def message(self):
         return f"Invalid email address '{self.email}'"
+
+
+@dataclass(eq=False)
+class WrongPasswordException(DomainException):
+    exception_text: str
+
+    @property
+    def message(self):
+        return self.exception_text

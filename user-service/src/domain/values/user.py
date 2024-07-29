@@ -6,6 +6,7 @@ from src.domain.exceptions.user import (
     UsernameTooShortException,
     UsernameTooLongException,
     EmailInvalidException,
+    WrongPasswordException,
 )
 
 
@@ -28,6 +29,43 @@ class Email(BaseValueObject[str]):
 
         if not re.fullmatch(regex, self.value):
             raise EmailInvalidException(email=self.value)
+
+    def as_generic_type(self) -> str:
+        return str(self.value)
+
+
+@dataclass(frozen=True)
+class RawPassword(BaseValueObject[str]):
+    def validate(self):
+        if len(self.value) < 8:
+            raise WrongPasswordException(
+                exception_text="Password must be at least 8 characters long"
+            )
+
+        if len(self.value) > 32:
+            raise WrongPasswordException(
+                exception_text="Password must be at most 32 characters long"
+            )
+
+        if not any(char.isdigit() for char in self.value):
+            raise WrongPasswordException(
+                exception_text="Password must contain at least one digit"
+            )
+
+        if not any(char.isupper() for char in self.value):
+            raise WrongPasswordException(
+                exception_text="Password must contain at least one uppercase letter"
+            )
+
+        if not any(char.islower() for char in self.value):
+            raise WrongPasswordException(
+                exception_text="Password must contain at least one lowercase letter"
+            )
+
+        if not any(char in "!@#$%^&*()_+" for char in self.value):
+            raise WrongPasswordException(
+                exception_text="Password must contain at least one special character"
+            )
 
     def as_generic_type(self) -> str:
         return str(self.value)

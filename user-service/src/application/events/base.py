@@ -11,6 +11,7 @@ from typing import (
 
 from src.domain.events.base import BaseEvent
 from src.infra.message_brokers.base import BaseMessageBroker
+
 # from infra.websockets.managers import BaseConnectionManager
 
 

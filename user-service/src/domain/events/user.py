@@ -11,3 +11,10 @@ class NewUserCreatedEvent(BaseEvent):
     user_oid: str
     user_name: str
     user_email: str
+
+
+@dataclass
+class UserDeletedEvent(BaseEvent):
+    event_title: ClassVar[str] = "User Deleted"
+
+    user_oid: str
