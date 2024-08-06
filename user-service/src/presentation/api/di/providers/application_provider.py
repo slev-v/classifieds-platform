@@ -1,10 +1,9 @@
 from dishka import provide, Provider, Scope
 
+from src.application.services.base import BaseSessionService
 from src.infra.database.repositories.user import BaseUserRepo
 from src.infra.message_brokers.base import BaseMessageBroker
-from src.application.commands.test import TestCommandHandler, TestCommand
 from src.application.mediator.base import Mediator
-from src.application.events.test_event import TestEvent, TestEventHandler
 
 from src.application.services.user import BaseHasherPasswordService
 from src.application.commands.user import (
@@ -12,13 +11,24 @@ from src.application.commands.user import (
     CreateUserCommandHandler,
     DeleteUserCommand,
     DeleteUserCommandHandler,
+    LoginUserCommand,
+    LoginUserCommandHandler,
+    LogoutUserCommand,
+    LogoutUserCommandHandler,
 )
 from src.application.events.user import (
     NewUserCreatedEventHandler,
     UserDeletedEventHandler,
+    UserLoggedInEventHandler,
+    UserLoggedOutEventHandler,
 )
 from src.application.queries.user import GetUserByOidQuery, GetUserByOidQueryHandler
-from src.domain.events.user import NewUserCreatedEvent, UserDeletedEvent
+from src.domain.events.user import (
+    NewUserCreatedEvent,
+    UserDeletedEvent,
+    UserLoggedInEvent,
+    UserLoggedOutEvent,
+)
 
 
 class ApplicationProvider(Provider):
@@ -27,18 +37,27 @@ class ApplicationProvider(Provider):
         self,
         message_broker: BaseMessageBroker,
         hasher_password: BaseHasherPasswordService,
+        session_service: BaseSessionService,
         user_repo: BaseUserRepo,
     ) -> Mediator:
-        mediator = Mediator()
+        mediator: Mediator = Mediator()
 
         # command handlers
         create_user_command_handler = CreateUserCommandHandler(
             _mediator=mediator, hasher_password=hasher_password, user_repo=user_repo
         )
         delete_user_command_handler = DeleteUserCommandHandler(
-            _mediator=mediator, user_repo=user_repo
+            _mediator=mediator, user_repo=user_repo, session_service=session_service
         )
-        test_command_handler = TestCommandHandler(_mediator=mediator)
+        login_user_command_handler = LoginUserCommandHandler(
+            _mediator=mediator,
+            user_repo=user_repo,
+            hasher_password=hasher_password,
+            session_service=session_service,
+        )
+        logout_user_command_handler = LogoutUserCommandHandler(
+            _mediator=mediator, session_service=session_service, user_repo=user_repo
+        )
 
         # query handlers
         get_user_by_oid_query_handler = GetUserByOidQueryHandler(user_repo=user_repo)
@@ -53,9 +72,12 @@ class ApplicationProvider(Provider):
             broker_topic="user-deleted", message_broker=message_broker
         )
 
-        test_event_handler = TestEventHandler(
-            broker_topic="test-topic",
-            message_broker=message_broker,
+        user_logged_in_event_handler = UserLoggedInEventHandler(
+            broker_topic="user-logged-in", message_broker=message_broker
+        )
+
+        user_logged_out_event_handler = UserLoggedOutEventHandler(
+            broker_topic="user-logged-out", message_broker=message_broker
         )
 
         # events
@@ -70,8 +92,13 @@ class ApplicationProvider(Provider):
         )
 
         mediator.register_event(
-            TestEvent,
-            [test_event_handler],
+            UserLoggedInEvent,
+            [user_logged_in_event_handler],
+        )
+
+        mediator.register_event(
+            UserLoggedOutEvent,
+            [user_logged_out_event_handler],
         )
 
         # commands
@@ -86,8 +113,13 @@ class ApplicationProvider(Provider):
         )
 
         mediator.register_command(
-            TestCommand,
-            [test_command_handler],
+            LoginUserCommand,
+            [login_user_command_handler],
+        )
+
+        mediator.register_command(
+            LogoutUserCommand,
+            [logout_user_command_handler],
         )
 
         # Queries

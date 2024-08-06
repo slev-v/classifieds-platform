@@ -5,7 +5,7 @@ from src.presentation.api.di import init_container
 # from src.application.mediator.base import Mediator
 
 
-async def init_message_broker():
+async def init_message_broker() -> None:
     container = init_container()
     message_broker: BaseMessageBroker = await container.get(BaseMessageBroker)
     await message_broker.start()
@@ -31,7 +31,7 @@ async def consume_in_background():
     #     )
 
 
-async def close_message_broker():
+async def close_message_broker() -> None:
     container = init_container()
     message_broker: BaseMessageBroker = await container.get(BaseMessageBroker)
     await message_broker.close()

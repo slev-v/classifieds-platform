@@ -8,6 +8,7 @@ from dataclasses import (
     dataclass,
     field,
 )
+from typing import Generic
 
 from src.domain.events.base import BaseEvent
 from src.application.events.base import (
@@ -18,8 +19,8 @@ from src.application.events.base import (
 
 
 @dataclass(eq=False)
-class EventMediator(ABC):
-    events_map: dict[ET, EventHandler] = field(
+class EventMediator(ABC, Generic[ET, ER]):
+    events_map: defaultdict[ET, list[EventHandler]] = field(
         default_factory=lambda: defaultdict(list),
         kw_only=True,
     )

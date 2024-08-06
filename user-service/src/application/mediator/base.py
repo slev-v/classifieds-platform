@@ -30,12 +30,16 @@ from src.application.queries.base import (
 
 
 @dataclass(eq=False)
-class Mediator(EventMediator, QueryMediator, CommandMediator):
-    events_map: dict[ET, EventHandler] = field(
+class Mediator(
+    EventMediator[ET, ER],
+    QueryMediator[QT, QR],
+    CommandMediator[CT, CR],
+):
+    events_map: defaultdict[ET, list[EventHandler]] = field(
         default_factory=lambda: defaultdict(list),
         kw_only=True,
     )
-    commands_map: dict[CT, CommandHandler] = field(
+    commands_map: defaultdict[CT, list[CommandHandler]] = field(
         default_factory=lambda: defaultdict(list),
         kw_only=True,
     )
@@ -52,7 +56,9 @@ class Mediator(EventMediator, QueryMediator, CommandMediator):
     ):
         self.commands_map[command].extend(command_handlers)
 
-    def register_query(self, query: QT, query_handler: BaseQueryHandler[QT, QR]) -> QR:
+    def register_query(
+        self, query: QT, query_handler: BaseQueryHandler[QT, QR]
+    ) -> None:
         self.queries_map[query] = query_handler
 
     async def publish(self, events: Iterable[BaseEvent]) -> Iterable[ER]:

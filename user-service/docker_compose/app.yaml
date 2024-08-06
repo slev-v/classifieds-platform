@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  main-app:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+
+    environment:
+      DB_URI: ${DB_URI:?}
+      KAFKA_URI: ${KAFKA_URI:?}
+      REDIS_URI: ${REDIS_URI:?}
+
+    container_name: main-app

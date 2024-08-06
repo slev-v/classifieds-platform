@@ -12,12 +12,13 @@ class BaseHasherPasswordService(ABC):
     def verify_password(self, plain_password: str, hashed_password: str) -> bool: ...
 
 
-# from typing import Protocol
-#
-#
-# class HasherPassword(Protocol):
-#     def get_password_hash(self, password: str) -> str:
-#         raise NotImplementedError
-#
-#     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-#         raise NotImplementedError
+@dataclass
+class BaseSessionService(ABC):
+    @abstractmethod
+    async def create_session(self, session_oid: str, user_oid: str) -> None: ...
+
+    @abstractmethod
+    async def delete_session(self, session_oid: str) -> None: ...
+
+    @abstractmethod
+    async def get(self, session_oid: str) -> str: ...

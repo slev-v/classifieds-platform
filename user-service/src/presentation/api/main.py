@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from dishka.integrations.fastapi import setup_dishka
 
 from src.presentation.api.di import init_container
-from src.presentation.api.v1.main import router
 from src.presentation.api.user.handlers import router as user_router
 from src.presentation.api.lifespan import close_message_broker, init_message_broker
 
@@ -32,7 +31,6 @@ def create_app() -> FastAPI:
 
     container = init_container()
     setup_dishka(container, app)
-    app.include_router(router)
     app.include_router(user_router)
 
     return app

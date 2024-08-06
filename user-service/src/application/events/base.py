@@ -7,6 +7,7 @@ from typing import (
     Any,
     Generic,
     TypeVar,
+    Coroutine,
 )
 
 from src.domain.events.base import BaseEvent
@@ -27,7 +28,7 @@ class IntegrationEvent(BaseEvent, ABC): ...
 class EventHandler(ABC, Generic[ET, ER]):
     message_broker: BaseMessageBroker
     # connection_manager: BaseConnectionManager
-    broker_topic: str | None = None
+    broker_topic: str
 
     @abstractmethod
-    def handle(self, event: ET) -> ER: ...
+    def handle(self, event: ET) -> Coroutine[Any, Any, ER]: ...

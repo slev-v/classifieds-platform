@@ -1,11 +1,14 @@
 from dataclasses import dataclass
 
-from src.domain.entities.user import User
+from src.application.services.base import BaseSessionService
+from src.domain.entities.user import User, Session
 from src.domain.values.user import Email, RawPassword, Username
 from src.application.commands.base import BaseCommand, CommandHandler
 from src.application.services.user import BaseHasherPasswordService
 from src.application.exceptions.user import (
+    PasswordNotMatchException,
     UserNotFoundException,
+    UserNotFoundByNameException,
     EmailAlreadyExistsException,
     UsernameAlreadyExistsException,
 )
@@ -55,39 +58,78 @@ class CreateUserCommandHandler(CommandHandler[CreateUserCommand, User]):
 
 @dataclass(frozen=True)
 class DeleteUserCommand(BaseCommand):
-    user_oid: str
+    session_oid: str
 
 
 @dataclass(frozen=True)
 class DeleteUserCommandHandler(CommandHandler[DeleteUserCommand, None]):
     user_repo: BaseUserRepo
+    session_service: BaseSessionService
 
     async def handle(self, command: DeleteUserCommand) -> None:
-        user = await self.user_repo.get_user_by_oid(oid=command.user_oid)
+        user_oid = await self.session_service.get(command.session_oid)
+        user = await self.user_repo.get_user_by_oid(oid=user_oid)
 
         if not user:
-            raise UserNotFoundException(user_oid=command.user_oid)
+            raise UserNotFoundException(user_oid=user_oid)
 
-        await self.user_repo.delete_user_by_oid(command.user_oid)
+        await self.user_repo.delete_user_by_oid(user_oid)
+        await self.session_service.delete_session(command.session_oid)
         user.delete()
         await self._mediator.publish(user.pull_events())
 
 
-# @dataclass(frozen=True)
-# class DeleteChatCommand(BaseCommand):
-#     chat_oid: str
-#
-#
-# @dataclass(frozen=True)
-# class DeleteChatCommandHandler(CommandHandler[DeleteChatCommand, None]):
-#     chats_repository: BaseChatsRepository
-#
-#     async def handle(self, command: DeleteChatCommand) -> None:
-#         chat = await self.chats_repository.get_chat_by_oid(oid=command.chat_oid)
-#
-#         if not chat:
-#             raise ChatNotFoundException(chat_oid=command.chat_oid)
-#
-#         await self.chats_repository.delete_chat_by_oid(chat_oid=command.chat_oid)
-#         chat.delete()
-#         await self._mediator.publish(chat.pull_events())
+@dataclass(frozen=True)
+class LogoutUserCommand(BaseCommand):
+    session_oid: str
+
+
+@dataclass(frozen=True)
+class LogoutUserCommandHandler(CommandHandler[LogoutUserCommand, None]):
+    session_service: BaseSessionService
+    user_repo: BaseUserRepo
+
+    async def handle(self, command: LogoutUserCommand) -> None:
+        user_oid = await self.session_service.get(command.session_oid)
+        user = await self.user_repo.get_user_by_oid(user_oid)
+
+        if not user:
+            raise UserNotFoundException(user_oid=user_oid)
+
+        user.logout(command.session_oid)
+        await self.session_service.delete_session(command.session_oid)
+        await self._mediator.publish(user.pull_events())
+
+
+@dataclass(frozen=True)
+class LoginUserCommand(BaseCommand):
+    username: str
+    password: str
+
+
+@dataclass(frozen=True)
+class LoginUserCommandHandler(CommandHandler[LoginUserCommand, str]):
+    hasher_password: BaseHasherPasswordService
+    session_service: BaseSessionService
+    user_repo: BaseUserRepo
+
+    async def handle(self, command: LoginUserCommand) -> str:
+        user = await self.user_repo.get_user_by_username(command.username)
+
+        if not user:
+            raise UserNotFoundByNameException(command.username)
+
+        if not self.hasher_password.verify_password(
+            command.password, user.hashed_password
+        ):
+            raise PasswordNotMatchException()
+
+        session = Session(user_oid=user.oid)
+        user.login(session.oid)
+
+        await self.session_service.create_session(
+            session_oid=session.oid, user_oid=user.oid
+        )
+        await self._mediator.publish(user.pull_events())
+
+        return session.oid

@@ -21,6 +21,9 @@ class BaseUserRepo(ABC):
     async def get_user_by_oid(self, oid: str) -> UserEntity | None: ...
 
     @abstractmethod
+    async def get_user_by_username(self, username: str) -> UserEntity | None: ...
+
+    @abstractmethod
     async def delete_user_by_oid(self, oid: str) -> None: ...
 
     @abstractmethod
@@ -39,6 +42,13 @@ class UserRepo(BaseUserRepo):
 
     async def get_user_by_oid(self, oid: str) -> UserEntity | None:
         user = await self._session.get(UserModel, oid)
+        if not user:
+            return None
+        return convert_user_model_to_user_entity(user)
+
+    async def get_user_by_username(self, username: str) -> UserEntity | None:
+        query = select(UserModel).where(UserModel.name == username)
+        user = await self._session.scalar(query)
         if not user:
             return None
         return convert_user_model_to_user_entity(user)

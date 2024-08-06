@@ -6,6 +6,7 @@ from dataclasses import (
     dataclass,
     field,
 )
+from typing import Generic
 
 from src.application.queries.base import (
     BaseQuery,
@@ -16,7 +17,7 @@ from src.application.queries.base import (
 
 
 @dataclass(eq=False)
-class QueryMediator(ABC):
+class QueryMediator(ABC, Generic[QT, QR]):
     queries_map: dict[QT, BaseQueryHandler] = field(
         default_factory=dict,
         kw_only=True,
@@ -25,7 +26,7 @@ class QueryMediator(ABC):
     @abstractmethod
     def register_query(
         self, query: QT, query_handler: BaseQueryHandler[QT, QR]
-    ) -> QR: ...
+    ) -> None: ...
 
     @abstractmethod
     async def handle_query(self, query: BaseQuery) -> QR: ...

@@ -23,6 +23,15 @@ class CreateUserResponseSchema(BaseModel):
         )
 
 
+class LoginUserRequestSchema(BaseModel):
+    username: str
+    password: str
+
+
+class LoginUserResponseSchema(BaseModel):
+    session_oid: str
+
+
 class GetUserByOidResponseSchema(BaseModel):
     oid: str
     username: str

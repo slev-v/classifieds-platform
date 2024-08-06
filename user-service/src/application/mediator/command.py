@@ -8,6 +8,7 @@ from dataclasses import (
     dataclass,
     field,
 )
+from typing import Generic
 
 from src.application.commands.base import (
     BaseCommand,
@@ -18,8 +19,8 @@ from src.application.commands.base import (
 
 
 @dataclass(eq=False)
-class CommandMediator(ABC):
-    commands_map: dict[CT, CommandHandler] = field(
+class CommandMediator(ABC, Generic[CT, CR]):
+    commands_map: defaultdict[CT, list[CommandHandler]] = field(
         default_factory=lambda: defaultdict(list),
         kw_only=True,
     )

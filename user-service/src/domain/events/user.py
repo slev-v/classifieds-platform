@@ -18,3 +18,19 @@ class UserDeletedEvent(BaseEvent):
     event_title: ClassVar[str] = "User Deleted"
 
     user_oid: str
+
+
+@dataclass
+class UserLoggedInEvent(BaseEvent):
+    event_title: ClassVar[str] = "User Logged In"
+
+    user_oid: str
+    session_oid: str
+
+
+@dataclass
+class UserLoggedOutEvent(BaseEvent):
+    event_title: ClassVar[str] = "User Logged Out"
+
+    user_oid: str
+    session_oid: str
