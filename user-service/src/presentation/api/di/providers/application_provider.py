@@ -22,7 +22,12 @@ from src.application.events.user import (
     UserLoggedInEventHandler,
     UserLoggedOutEventHandler,
 )
-from src.application.queries.user import GetUserByOidQuery, GetUserByOidQueryHandler
+from src.application.queries.user import (
+    GetUserByOidQuery,
+    GetUserByOidQueryHandler,
+    GetUserBySessionOidQuery,
+    GetUserBySessionOidQueryHandler,
+)
 from src.domain.events.user import (
     NewUserCreatedEvent,
     UserDeletedEvent,
@@ -61,6 +66,9 @@ class ApplicationProvider(Provider):
 
         # query handlers
         get_user_by_oid_query_handler = GetUserByOidQueryHandler(user_repo=user_repo)
+        get_user_by_session_oid_query_handler = GetUserBySessionOidQueryHandler(
+            user_repo=user_repo, session_service=session_service
+        )
 
         # event handlers
         new_user_created_event_handler = NewUserCreatedEventHandler(
@@ -126,6 +134,11 @@ class ApplicationProvider(Provider):
         mediator.register_query(
             GetUserByOidQuery,
             get_user_by_oid_query_handler,
+        )
+
+        mediator.register_query(
+            GetUserBySessionOidQuery,
+            get_user_by_session_oid_query_handler,
         )
 
         return mediator

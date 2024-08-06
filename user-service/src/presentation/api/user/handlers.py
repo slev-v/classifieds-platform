@@ -11,7 +11,7 @@ from src.application.commands.user import (
     LoginUserCommand,
     LogoutUserCommand,
 )
-from src.application.queries.user import GetUserByOidQuery
+from src.application.queries.user import GetUserByOidQuery, GetUserBySessionOidQuery
 from src.presentation.api.user.schemas import (
     CreateUserRequestSchema,
     CreateUserResponseSchema,
@@ -22,6 +22,29 @@ from src.presentation.api.user.schemas import (
 from src.presentation.api.schemas import ErrorSchema
 
 router = APIRouter(tags=["User"])
+
+
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    description="Endpoint returns a current user by session_oid from Cookie.",
+    responses={
+        status.HTTP_200_OK: {"model": GetUserByOidResponseSchema},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorSchema},
+    },
+    summary="Returns a current user.",
+)
+@inject
+async def get_current_user(
+    mediator: FromDishka[Mediator], session_oid: str = Cookie(include_in_schema=False)
+):
+    try:
+        user: User = await mediator.handle_query(GetUserBySessionOidQuery(session_oid))
+    except DomainException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail={"error": exception.message}
+        )
+    return GetUserByOidResponseSchema.from_entity(user)
 
 
 @router.post(
@@ -104,29 +127,6 @@ async def logout_user(
     response.delete_cookie("session_oid")
 
 
-@router.get(
-    "/{user_oid}",
-    status_code=status.HTTP_200_OK,
-    description="Endpoint returns a user by oid.",
-    responses={
-        status.HTTP_200_OK: {"model": GetUserByOidResponseSchema},
-        status.HTTP_404_NOT_FOUND: {"model": ErrorSchema},
-    },
-    summary="Returns a user by oid.",
-)
-@inject
-async def get_user_by_oid(
-    user_oid: str, mediator: FromDishka[Mediator]
-) -> GetUserByOidResponseSchema:
-    try:
-        user: User = await mediator.handle_query(GetUserByOidQuery(user_oid=user_oid))
-    except DomainException as exception:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail={"error": exception.message}
-        )
-    return GetUserByOidResponseSchema.from_entity(user)
-
-
 @router.delete(
     "/",
     status_code=status.HTTP_204_NO_CONTENT,
@@ -148,3 +148,26 @@ async def delete_user(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail={"error": exception.message}
         )
+
+
+@router.get(
+    "/{user_oid}",
+    status_code=status.HTTP_200_OK,
+    description="Endpoint returns a user by oid.",
+    responses={
+        status.HTTP_200_OK: {"model": GetUserByOidResponseSchema},
+        status.HTTP_404_NOT_FOUND: {"model": ErrorSchema},
+    },
+    summary="Returns a user by oid.",
+)
+@inject
+async def get_user_by_oid(
+    user_oid: str, mediator: FromDishka[Mediator]
+) -> GetUserByOidResponseSchema:
+    try:
+        user: User = await mediator.handle_query(GetUserByOidQuery(user_oid=user_oid))
+    except DomainException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail={"error": exception.message}
+        )
+    return GetUserByOidResponseSchema.from_entity(user)
