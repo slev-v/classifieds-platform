@@ -1,17 +1,17 @@
 services:
   user_service_migrate:
-    image: user-service-main-app
+    image: classified-service-main-app
     volumes:
       - ./src:/src
     environment:
       DB_URI: ${DB_URI}
-      REDIS_URI: ${REDIS_URI}
       KAFKA_URI: ${KAFKA_URI}
     command: "alembic upgrade head"
-    # networks:
-    #   - user_network
+
+    networks:
+        - classified-service_default
 
 
-# networks:
-#   user_network:
-#     external: true
+networks:
+  classified-service_default:
+    external: true
