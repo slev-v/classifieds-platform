@@ -1,0 +1,11 @@
+services:
+  main-app:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+
+    environment:
+      DB_URI: ${DB_URI:?}
+      KAFKA_URI: ${KAFKA_URI:?}
+
+    container_name: main-app

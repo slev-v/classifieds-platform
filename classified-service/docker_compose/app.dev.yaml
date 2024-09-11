@@ -1,0 +1,29 @@
+services:
+  main-app:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+
+    environment:
+      DB_URI: ${DB_URI:?}
+      KAFKA_URI: ${KAFKA_URI:?}
+  
+    ports: 
+      - "8001:8000"
+
+    volumes:
+      - ../src:/app/src
+
+
+    command: "uvicorn --factory src.presentation.api.main:create_app --timeout-graceful-shutdown 2 --host 0.0.0.0 --port 8000 --reload"
+
+    networks:
+        - kafka_network
+        - classified-service_default
+
+
+networks:
+  classified-service_default:
+    external: true
+  kafka_network:
+    external: true
