@@ -1,3 +1,5 @@
+from aiojobs import Scheduler
+
 from dishka import Provider, provide, Scope
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,3 +18,7 @@ class RepositoriesProvider(Provider):
     @provide(scope=Scope.REQUEST)
     def get_redis_repo(self, redis_connection: redis.Redis) -> BaseRedisRepository:
         return RedisRepository(redis_connection)
+
+    @provide(scope=Scope.APP)
+    def get_sheduler(self) -> Scheduler:
+        return Scheduler()

@@ -1,25 +1,20 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from dishka.integrations.fastapi import setup_dishka
+from dishka.integrations.fastapi import setup_dishka as setup_dishka_fastapi
 
+from src.infra.message_brokers.base import BaseMessageBroker
 from src.presentation.api.di import init_container
 from src.presentation.api.user.handlers import router as user_router
-from src.presentation.api.lifespan import close_message_broker, init_message_broker
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_message_broker()
+    message_broker: BaseMessageBroker = await app.state.container.get(BaseMessageBroker)
 
-    # container = container_factory()
-
-    # scheduler: Scheduler = container.resolve(Scheduler)
-
-    # job = await scheduler.spawn(consume_in_background())
+    await message_broker.start()
 
     yield
-    await close_message_broker()
-    # await job.close()
+    await message_broker.stop()
 
 
 def create_app() -> FastAPI:
@@ -30,7 +25,9 @@ def create_app() -> FastAPI:
     )
 
     container = init_container()
-    setup_dishka(container, app)
+    app.state.container = container
+    setup_dishka_fastapi(container, app)
+
     app.include_router(user_router)
 
     return app

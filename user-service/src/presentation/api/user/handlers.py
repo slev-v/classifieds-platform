@@ -21,7 +21,7 @@ from src.presentation.api.user.schemas import (
 )
 from src.presentation.api.schemas import ErrorSchema
 
-router = APIRouter(tags=["User"])
+router = APIRouter(prefix="/user", tags=["User"])
 
 
 @router.get(

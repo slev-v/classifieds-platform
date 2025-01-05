@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator
 
 
 class BaseMessageBroker(ABC):
@@ -8,17 +7,9 @@ class BaseMessageBroker(ABC):
         pass
 
     @abstractmethod
-    async def start_consuming(self, topic: str) -> AsyncIterator[dict]:
-        yield {}
-
-    @abstractmethod
-    async def stop_consuming(self):
-        pass
-
-    @abstractmethod
-    async def close(self):
-        pass
-
-    @abstractmethod
     async def start(self):
+        pass
+
+    @abstractmethod
+    async def stop(self) -> None:
         pass

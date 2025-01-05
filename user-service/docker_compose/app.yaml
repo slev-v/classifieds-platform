@@ -6,7 +6,7 @@ services:
 
     environment:
       DB_URI: ${DB_URI:?}
-      KAFKA_URI: ${KAFKA_URI:?}
+      NATS_URI: ${NATS_URI:?}
       REDIS_URI: ${REDIS_URI:?}
 
     container_name: main-app

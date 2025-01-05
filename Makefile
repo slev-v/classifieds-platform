@@ -17,6 +17,7 @@ CLASSIFIED_MIGRATE = ${CLASSIFIED_COMPOSE}/migrate.yaml
 CLASSIFIED_ENV = --env-file classified-service/.env
 
 KAFKA = docker_compose/kafka.yaml
+NATS = docker_compose/nats.yaml
 
 .PHONY: kafka
 kafka:
@@ -26,6 +27,13 @@ kafka:
 kafka-down:
 	${DC} -p kafka-service -f ${KAFKA} down
 
+.PHONY: nats
+nats:
+	${DC} -p nats-service -f ${NATS} up -d
+
+.PHONY: nats-down
+nats-down:
+	${DC} -p nats-service -f ${NATS} down
 
 .PHONY: user-dev
 user-dev:
